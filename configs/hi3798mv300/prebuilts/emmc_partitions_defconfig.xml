@@ -11,5 +11,5 @@
 <Part Sel="0" PartitionName="loader" FlashType="emmc" FileSystem="none" Start="26M" Length="32M" SelectFile="apploader.bin"/>
 <Part Sel="1" PartitionName="trustedcore" FlashType="emmc" FileSystem="none" Start="58M" Length="8M" SelectFile="trustedcore.img"/>
 <Part Sel="1" PartitionName="kernel" FlashType="emmc" FileSystem="none" Start="66M" Length="32M" SelectFile="hi_kernel.bin"/>
-<Part Sel="1" PartitionName="rootfs" FlashType="emmc" FileSystem="ext3/4" Start="98M" Length="256M" SelectFile="rootfs_256M.ext4"/>
+<Part Sel="1" PartitionName="rootfs" FlashType="emmc" FileSystem="ext3/4" Start="98M" Length="512M" SelectFile="rootfs_512M.ext4"/>
 </Partition_Info>
