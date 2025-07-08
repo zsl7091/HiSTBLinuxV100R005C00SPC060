@@ -1,0 +1,318 @@
+/*
+ * Device Tree for HiSilicon Hi3798MV300 (64-bit, Linux 4.4.35)
+ * Based on hi3798mv300.dts (32-bit) and hi3798mv200.dts (64-bit)
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/clock/hi3798mv200-clock.h>
+
+/ {
+    model = "HiSilicon Hi3798MV300";
+    compatible = "hisilicon,hi3798mv300", "hisilicon,hi3798mv200";
+    #address-cells = <2>;
+    #size-cells = <2>;
+    interrupt-parent = <&gic>;
+
+    aliases {
+        net_phy0 = &hieth_phy0;
+        net_phy1 = &higmac0;
+        net_phy_addr0 = &hieth_phy0;
+        net_phy_addr1 = &eth_phy0;
+        emmc = &emmc;
+        sd = &sd;
+        sdio = &sdio;
+        ohci0 = &ohci;
+        ehci0 = &ehci;
+        xhci0 = &xhci0;
+        sata = &sata;
+        sataphy = &sataphy;
+        pcie = &pcie;
+        uart0 = &uart0;
+        uart2 = &uart2;
+        uart3 = &uart3;
+        fmc = &fmc;
+        udc = &udc;
+        otg = &otg;
+        i2c0 = &hii2c0;
+        i2c1 = &hii2c1;
+        i2c2 = &hii2c2;
+        spi0 = &spi;
+        chiptrim = &chiptrim;
+    };
+
+    chosen {
+        bootargs = "mem=1G console=ttyAMA0,115200 root=/dev/mmcblk0p7 rootfstype=ext4 rootwait rw blkdevparts=mmcblk0:2M(boot),4M(baseparam),4M(pqparam),4M(logo),8M(trustedcore),16M(kernel),256M(rootfs),-(others) earlycon=pl011,0xf8b00000";
+    };
+
+    psci {
+        compatible = "arm,psci-0.2";
+        method = "smc";
+    };
+
+    idle-states {
+        entry-method = "arm,psci";
+
+        CPU_POWERDOWN: cpu-powerdown {
+            compatible = "arm,idle-state";
+            arm,psci-suspend-param = <0x0010000>;
+            entry-latency-us = <20>;
+            exit-latency-us = <40>;
+            min-residency-us = <80>;
+        };
+        CPU_STANDBY: cpu-standby {
+            compatible = "arm,idle-state";
+            arm,psci-suspend-param = <0x0000000>;
+            entry-latency-us = <0x3fffffff>;
+            exit-latency-us = <0x40000000>;
+            min-residency-us = <0xffffffff>;
+        };
+    };
+
+    cpus {
+        #address-cells = <2>;
+        #size-cells = <0>;
+
+        cpu@0 {
+            compatible = "arm,cortex-a53", "arm,armv8";
+            device_type = "cpu";
+            reg = <0x0 0x0>;
+            enable-method = "psci";
+            cpu-idle-states = <&CPU_POWERDOWN &CPU_STANDBY>;
+        };
+        cpu@1 {
+            compatible = "arm,cortex-a53", "arm,armv8";
+            device_type = "cpu";
+            reg = <0x0 0x1>;
+            enable-method = "psci";
+            cpu-idle-states = <&CPU_POWERDOWN &CPU_STANDBY>;
+        };
+        cpu@2 {
+            compatible = "arm,cortex-a53", "arm,armv8";
+            device_type = "cpu";
+            reg = <0x0 0x2>;
+            enable-method = "psci";
+            cpu-idle-states = <&CPU_POWERDOWN &CPU_STANDBY>;
+        };
+        cpu@3 {
+            compatible = "arm,cortex-a53", "arm,armv8";
+            device_type = "cpu";
+            reg = <0x0 0x3>;
+            enable-method = "psci";
+            cpu-idle-states = <&CPU_POWERDOWN &CPU_STANDBY>;
+        };
+    };
+
+    memory@0 {
+        device_type = "memory";
+        reg = <0x0 0x0 0x0 0x40000000>; /* 1GB DDR3 */
+    };
+
+    gic: interrupt-controller@0xf1001000 {
+        compatible = "arm,gic-400", "arm,cortex-a15-gic";
+        #interrupt-cells = <3>;
+        interrupt-controller;
+        reg = <0x0 0xf1001000 0x0 0x1000>,
+              <0x0 0xf1002000 0x0 0x2000>,
+              <0x0 0xf1004000 0x0 0x2000>,
+              <0x0 0xf1006000 0x0 0x2000>;
+    };
+
+    clocks {
+        xtal_clk: xtal_clk {
+            compatible = "fixed-clock";
+            #clock-cells = <0>;
+            clock-frequency = <24000000>;
+            clock-output-names = "clk24M";
+        };
+        clk_54m: clk_54m {
+            compatible = "fixed-clock";
+            #clock-cells = <0>;
+            clock-frequency = <54000000>;
+            clock-output-names = "clk54M";
+        };
+        clk_75m: clk_75m {
+            compatible = "fixed-clock";
+            #clock-cells = <0>;
+            clock-frequency = <75000000>;
+            clock-output-names = "clk75M";
+        };
+    };
+
+    trusted_core {
+        compatible = "trusted_core";
+        interrupts = <0 64 4>;
+    };
+
+    firmware {
+        optee {
+            compatible = "linaro,optee-tz";
+            method = "smc";
+        };
+    };
+
+    soc {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        compatible = "simple-bus";
+        device_type = "soc";
+        ranges = <0x0 0x0 0x0 0xffffffff>;
+
+        chiptrim: chiptrim {
+            compatible = "chiptrim";
+        };
+
+        hisi_sensor0: hisi-sensor@0 {
+            compatible = "arm,hisi-thermal";
+            #thermal-sensor-cells = <1>;
+        };
+
+        thermal-zones {
+            soc_thermal {
+                polling-delay = <1000>;
+                polling-delay-passive = <100>;
+                sustainable-power = <2500>;
+                thermal-sensors = <&hisi_sensor0 0>;
+                trips {
+                    threshold: trip-point@0 {
+                        temperature = <95000>;
+                        hysteresis = <5000>;
+                        type = "passive";
+                    };
+                    target: trip-point@1 {
+                        temperature = <105000>;
+                        hysteresis = <5000>;
+                        type = "passive";
+                    };
+                    critical: trip-point@2 {
+                        temperature = <120000>;
+                        hysteresis = <5000>;
+                        type = "critical";
+                    };
+                };
+                cooling-maps {
+                    map0 {
+                        trip = <&target>;
+                        cooling-device = <&cpu0 0 4>;
+                        contribution = <1024>;
+                    };
+                };
+            };
+        };
+
+        amba {
+            compatible = "arm,amba-bus";
+            #address-cells = <2>;
+            #size-cells = <2>;
+            interrupt-parent = <&gic>;
+            ranges;
+
+            gpio0: gpio@0xf8b20000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x00041061>;
+                reg = <0x0 0xf8b20000 0x0 0x1000>;
+                interrupts = <0 108 0x4>;
+                gpio-controller;
+                #gpio-cells = <2>;
+                interrupt-controller;
+                #interrupt-interrupt-cells = <2>;
+                clocks = <&xtal_clk>;
+                clock-names = "apb_pclk";
+            };
+            gpio1: gpio@0xf8b21000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x00041061>;
+                reg = <0x0 0xf8b21000 0x0 0x1000>;
+                interrupts = <0 109 4>;
+                gpio-controller;
+                #gpio-cells = <2>;
+                interrupt-controller;
+                #interrupt-cells = <2>;
+                clocks = <&xtal_clk>;
+                clock-names = "apb_pclk";
+            };
+            gpio2: gpio@0xf8b22000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x00041061>;
+                reg = <0x0 0xf8b22000 0x0 0x1000>;
+                interrupts = <0 110 4>;
+                gpio-controller;
+                # gpio-cells = <2>;
+                interrupt-controller;
+                #interrupt-cells = <2>;
+                clocks = <&xtal_clk>;
+                clock-names = "apb_pclk";
+            };
+            gpio3: gpio@0xf8b23000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x00041061>;
+                reg = <0x0 0xf8b23000 0x0 0x1000>;
+                interrupts = <0 111 4>;
+                gpio-controller;
+                #gpio-cells = <2>;
+                interrupt-controller;
+                #interrupt-cells = <2>;
+                clocks = <&xtal_clk>;
+                clock-names = "apb_pclk";
+            };
+            gpio4: gpio@0xf8b24000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x00041061>;
+                reg = <0x0 0xf8b24000 0x0 0x1000>;
+                interrupts = <0 112 4>;
+                gpio-controller;
+                #gpio-cells = <2>;
+                interrupt-controller;
+                #interrupt-cells = <2>;
+                clocks = <&xtal_clk>;
+                clock-names = "apb_pclk";
+            };
+            gpio5: gpio@0xf8004000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x00041061>;
+                reg = <0x0 0xf8004000 0x0 0x1000>;
+                interrupts = <0 113 0>;
+                gpio-controller;
+                #gpio-cells = <2>;
+                interrupt-controller;
+                #interrupt-cells = <2>;
+                clocks = <&xtal_clk>;
+                clock-names = "apb_pclk";
+            };
+            gpio6: gpio@0xf8b26000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x00041061>;
+                reg = <0x0 0xf8b26000 0x0 0x1000>;
+                interrupts = <0 114 4>;
+                gpio-controller;
+                #gpio-cells = <2>;
+                interrupt-controller;
+                #interrupt-cells = <2>;
+                clocks = <&xtal_clk>;
+                clock-names = "apb_pclk";
+            };
+            gpio7: gpio@0xf8b27000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x00041061>;
+                reg = <0x0 0xf8b27000 0x0 0x1000>;
+                interrupts = <0 115 4>;
+                gpio-controller;
+                #gpio-cells = <2>;
+                interrupt-controller;
+                #interrupt-cells = <2>;
+                clocks = <&xtal_clk>;
+                clock-names = "apb_pclk";
+            };
+            gpio8: gpio@0xf8b28000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x00041061>;
+                reg = <0x0 0xf8b28000 0x0 0x1000>;
+                interrupts = <0 116 4>;
+                gpio-controller;
+                #gpio-cells = <2>;
+                interrupt-controller;
+                #interrupt-cells = <2>;
+                clocks = <&xtal_clk>;
+                clock-names = "apb_pclk";
+            };
+            gpio9: gpio@0xf8b
