@@ -815,9 +815,12 @@ el0_svc_naked:					// compat entry point
 	ldr	x16, [stbl, scno, lsl #3]	// address in the syscall table
 	blr	x16				// call sys_* routine
 	b	ret_fast_syscall
+/*
+ * Sam 修复：现代 rootfs 调用未知新系统调用时，
+ * 强行将错误码设置为 -ENOSYS (-38) 并通过快速通道安全返回，防止应用层挂掉。
+ */
 ni_sys:
-	mov	x0, sp
-	bl	do_ni_syscall
+	mov	x0, #-38
 	b	ret_fast_syscall
 ENDPROC(el0_svc)
 
