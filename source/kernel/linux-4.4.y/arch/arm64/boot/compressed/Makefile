@@ -98,6 +98,20 @@ image.bin: image.elf
 	@cd ${OBJS_OUTPUT_DIR} && $(OBJCOPY) --gap-fill=0xff -O binary $< $@
 
 image.elf: $(COBJS)
+	@echo "===================================================="
+	@echo "🚨 [终极拦截：强制替换主线 Image 并原地重编]"
+	@echo "请保持此终端不动，新开一个终端执行以下两步："
+	@echo "1. 把 20MB 的主线 Image 覆盖到下面这个目录（必须大写 Image）："
+	@echo "   👉 $(KERNEL_OUT_DIR)/arch/arm64/boot/Image"
+	@echo "2. 去确认一下主线 DTB 已经覆盖到："
+	@echo "   👉 $(KERNEL_OUT_DIR)/arch/arm64/boot/dts/hisilicon/ 下的所有 .dtb"
+	@echo "===================================================="
+	@sh -c 'read -p "👉 覆盖完成后，在此终端回车..." CONFIRM'
+	@echo "🔥 正在强行粉碎并现场重编 image_data.o..."
+	$(CC) $(ASFLAGS) -I$(KERNEL_OUT_DIR)/arch/arm64/boot/ -o ${OBJS_OUTPUT_DIR}/image_data.o ${CUR_DIR}/image_data.S -c
+	@echo "🔥 正在强行同步刷新 uImage.bak..."
+	@cp -f $(KERNEL_OUT_DIR)/arch/arm64/boot/Image $(KERNEL_OUT_DIR)/arch/arm64/boot/uImage.bak 2>/dev/null || true
+	@echo "🔥 开始生成 32位 引导外壳..."
 	@cd ${OBJS_OUTPUT_DIR} && $(LD) -Bstatic -T ${CUR_DIR}/vmlinux.lds -Ttext $(TEXTBASE) \
 		$(COBJS) -Map image.map -o $@
 

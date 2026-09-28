@@ -362,12 +362,13 @@ void __init setup_arch(char **cmdline_p)
 	conswitchp = &dummy_con;
 #endif
 #endif
-	if (boot_args[1] || boot_args[2] || boot_args[3]) {
+/* 注释掉 x1-x3 的不规范警告，避免旧版 U-Boot 传参残留导致内核熔断或打印报错 */
+/*	if (boot_args[1] || boot_args[2] || boot_args[3]) {
 		pr_err("WARNING: x1-x3 nonzero in violation of boot protocol:\n"
 			"\tx1: %016llx\n\tx2: %016llx\n\tx3: %016llx\n"
 			"This indicates a broken bootloader or old kernel\n",
 			boot_args[1], boot_args[2], boot_args[3]);
-	}
+	} */
 }
 
 static int __init arm64_device_init(void)

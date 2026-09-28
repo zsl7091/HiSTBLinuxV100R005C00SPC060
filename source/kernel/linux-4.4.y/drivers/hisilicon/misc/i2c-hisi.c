@@ -562,10 +562,13 @@ static int hi_i2c_resume(struct device *dev)
     return 0;
 }
 #endif
+
+#ifdef CONFIG_PM
 static const struct dev_pm_ops hi_i2c_pm_ops = {
     .suspend = hi_i2c_suspend,
     .resume  = hi_i2c_resume,
 };
+#endif
 
 static const struct of_device_id hi_i2c_match[] = {
     { .compatible = "hisilicon,hi-i2c" },
